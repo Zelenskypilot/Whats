@@ -1,13 +1,15 @@
 {
-  "name": "whats",
+  "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "A simple bot for Whats",
-  "main": "server.js",
+  "description": "A WhatsApp bot for an SMM panel using whatsapp-web.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js",
+    "server": "node index.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
-    "body-parser": "^1.19.0"
+    "express": "^4.18.2",
+    "whatsapp-web.js": "^1.19.4",
+    "qrcode-terminal": "^0.12.0"
   }
 }
