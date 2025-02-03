@@ -1,19 +1,21 @@
 const { Client, LocalAuth, Buttons } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
-const express = require('express'); // Express for Render
+const qrcode = require('qrcode'); // Use qrcode for better QR display
+const express = require('express');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize the WhatsApp client without custom dataPath
+// Initialize the WhatsApp client
 const client = new Client({
     authStrategy: new LocalAuth(), // Uses default storage
     puppeteer: { headless: true }
 });
 
 // Generate QR code for authentication
-client.on('qr', (qr) => {
-    qrcode.generate(qr, { small: true });
+client.on('qr', async (qr) => {
+    console.clear(); // Clear console for better QR visibility
+    console.log('Scan this QR Code to log in:');
+    console.log(await qrcode.toString(qr, { type: 'terminal' })); // Better QR display
 });
 
 // Log in confirmation
