@@ -1,13 +1,13 @@
 const { Client, LocalAuth, Buttons } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
-const express = require('express'); // Express to keep Render happy
+const express = require('express'); // Express for Render
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize the WhatsApp client
+// Initialize the WhatsApp client without custom dataPath
 const client = new Client({
-    authStrategy: new LocalAuth({ dataPath: "/data" }), // Uses persistent storage
+    authStrategy: new LocalAuth(), // Uses default storage
     puppeteer: { headless: true }
 });
 
