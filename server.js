@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Use the assigned port or default to 3000
 
 // Middleware to parse JSON and URL-encoded bodies
 app.use(bodyParser.json());
@@ -24,5 +24,5 @@ app.post('/message', (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on port ${port}`);
 });
