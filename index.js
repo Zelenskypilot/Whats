@@ -1,11 +1,20 @@
-const { makeWASocket } = require('@whiskeysockets/baileys');
+const { makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys');
+const fs = require('fs');
+const path = require('path');
+
+// Define the path for the auth state file
+const authStatePath = path.join(__dirname, 'auth_info.json');
+
+// Load or initialize the auth state
+const { state, saveState } = useSingleFileAuthState(authStatePath);
 
 async function startBot() {
   const sock = makeWASocket({
     printQRInTerminal: false, // Pairing code method doesn't need QR code
+    auth: state, // Pass the auth state
   });
 
-  // Wait for the connection to be ready
+  // Listen for connection updates
   sock.ev.on('connection.update', async (update) => {
     const { connection, isNewLogin } = update;
 
@@ -14,7 +23,7 @@ async function startBot() {
     }
 
     // Request pairing code if the device is not registered
-    if (!sock.authState.creds.registered) {
+    if (!state.creds.registered) {
       const number = '255625101994'; // Your phone number (without +, (), or -)
       try {
         const code = await sock.requestPairingCode(number);
@@ -40,6 +49,9 @@ async function startBot() {
       });
     }
   });
+
+  // Save the auth state whenever it updates
+  sock.ev.on('creds.update', saveState);
 }
 
 // Start the bot
