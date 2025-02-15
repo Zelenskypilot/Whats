@@ -1,19 +1,12 @@
 {
   "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "A simple WhatsApp bot using Baileys that generates a QR code and responds to messages.",
+  "description": "A simple WhatsApp bot using Venom",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "6.7.12",
-    "qrcode": "^1.5.0"
-  },
-  "engines": {
-    "node": ">=16"
-  },
-  "author": "Jexx",
-  "license": "MIT"
+    "venom-bot": "^4.3.7"
+  }
 }
