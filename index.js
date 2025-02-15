@@ -1,62 +1,46 @@
-const { Client, LocalAuth, Buttons } = require('whatsapp-web.js');
-const qrcode = require('qrcode'); // Use qrcode for better QR display
-const express = require('express');
+const { makeWASocket } = require('@whiskeysockets/baileys');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+async function startBot() {
+  const sock = makeWASocket({
+    printQRInTerminal: false, // Pairing code method doesn't need QR code
+  });
 
-// Initialize the WhatsApp client
-const client = new Client({
-    authStrategy: new LocalAuth(), // Uses default storage
-    puppeteer: { headless: true }
-});
+  // Wait for the connection to be ready
+  sock.ev.on('connection.update', async (update) => {
+    const { connection, isNewLogin } = update;
 
-// Generate QR code for authentication
-client.on('qr', async (qr) => {
-    console.clear(); // Clear console for better QR visibility
-    console.log('Scan this QR Code to log in:');
-    console.log(await qrcode.toString(qr, { type: 'terminal' })); // Better QR display
-});
-
-// Log in confirmation
-client.on('ready', () => {
-    console.log('Client is ready!');
-});
-
-// Listen for incoming messages
-client.on('message', async (message) => {
-    console.log(`Received message from ${message.from}: ${message.body}`);
-
-    if (message.body.toLowerCase() === 'start' || message.body.toLowerCase() === 'menu') {
-        let buttonMessage = new Buttons(
-            'Welcome to our SMM Panel Website! 🎉\n\nPlease choose an option:',
-            [
-                { body: '🛒 New Order' },
-                { body: '🆘 Support' },
-                { body: '📦 Track Order' }
-            ],
-            'Main Menu',
-            'Select an option below'
-        );
-
-        await client.sendMessage(message.from, buttonMessage);
-    } else if (message.body === '🛒 New Order') {
-        message.reply('You selected *New Order*. Please visit our website to place your order: https://your-smm-panel.com');
-    } else if (message.body === '🆘 Support') {
-        message.reply('You selected *Support*. Our support team will contact you shortly. For immediate assistance, email us at support@your-smm-panel.com.');
-    } else if (message.body === '📦 Track Order') {
-        message.reply('You selected *Track Order*. Please provide your order ID to track your order.');
+    if (connection === 'open') {
+      console.log('Connected to WhatsApp!');
     }
-});
 
-// Start the WhatsApp bot
-client.initialize();
+    // Request pairing code if the device is not registered
+    if (!sock.authState.creds.registered) {
+      const number = '255625101994'; // Your phone number (without +, (), or -)
+      try {
+        const code = await sock.requestPairingCode(number);
+        console.log(`Pairing Code: ${code}`);
+      } catch (error) {
+        console.error('Failed to request pairing code:', error);
+      }
+    }
+  });
 
-// Dummy HTTP server to keep Render alive
-app.get('/', (req, res) => {
-    res.send('WhatsApp Bot is Running...');
-});
+  // Listen for incoming messages
+  sock.ev.on('messages.upsert', async (m) => {
+    const message = m.messages[0];
+    if (!message.key.fromMe && message.message.conversation) {
+      const userMessage = message.message.conversation;
+      const sender = message.key.remoteJid;
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+      console.log(`Received message: ${userMessage} from ${sender}`);
+
+      // Respond to the user
+      await sock.sendMessage(sender, {
+        text: 'Hello my friend! Bot is now in testing by my developer Jaxx 😁',
+      });
+    }
+  });
+}
+
+// Start the bot
+startBot();
