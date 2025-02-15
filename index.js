@@ -1,54 +1,44 @@
-import { makeWASocket, useMultiFileAuthState, Browsers } from '@whiskeysockets/baileys';
-import QRCode from 'qrcode';
+const venom = require('venom-bot');
+const qrcode = require('qrcode-terminal');
 
-async function startBot() {
-    // Initialize authentication state
-    const { state, saveCreds } = await useMultiFileAuthState('./auth');
-
-    // Create WhatsApp socket connection with QR code logging in Railway
-    const sock = makeWASocket({
-        auth: state, // Use the authentication state
-        browser: Browsers.ubuntu('My App'), // Custom browser name
-        printQRInTerminal: false // Disable QR code in terminal
-    });
-
-    // Save credentials whenever updated
-    sock.ev.on('creds.update', saveCreds);
-
-    // Log the QR code to Railway logs and generate a QR code using `qrcode` library
-    sock.ev.on('qr', (qr) => {
-        console.log('Your WhatsApp QR Code (scannable):');
-        
-        // Log the QR code directly to the Railway logs as a string
-        QRCode.toString(qr, { type: 'terminal' }, (err, url) => {
-            if (err) {
-                console.error('Error generating QR code:', err);
-                return;
-            }
-            // This will print the QR code to the logs in a scannable format
-            console.log(url);
-        });
-    });
+// Create the bot
+venom.create({
+  session: 'my-bot', // Name of the session
+  multidevice: true, // For multi-device support
+  logQR: true,      // Log QR code to the terminal
+})
+  .then((client) => {
+    console.log('Bot is running!');
 
     // Listen for incoming messages
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-        if (!messages[0]?.key.fromMe) {
-            const sender = messages[0].key.remoteJid;
-            await sock.sendMessage(sender, { text: 'Hello! Welcome to my WhatsApp bot 😊' });
-        }
-    });
+    client.onMessage((message) => {
+      // Check if the message is from a user (not a group or status)
+      if (message.isGroupMsg === false) {
+        const sender = message.sender.name || message.sender.pushname || message.sender.id;
+        const greeting = `Hello ${sender}! 👋\nWelcome to the bot. How can I assist you today?`;
 
-    // Handle reconnection
-    sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect } = update;
-        if (connection === 'close') {
-            console.log('Connection closed. Restarting...');
-            startBot(); // Restart the bot if it disconnects
-        } else if (connection === 'open') {
-            console.log('WhatsApp bot connected successfully!');
-        }
+        // Send a greeting message
+        client.sendText(message.from, greeting)
+          .then(() => console.log(`Greeting sent to ${sender}`))
+          .catch((err) => console.error('Error sending message:', err));
+      }
     });
-}
+  })
+  .catch((err) => {
+    console.error('Error initializing bot:', err);
+  });
 
-// Start the bot
-startBot();
+// Handle QR code generation
+venom.onStateChange((state) => {
+  if (state === 'qrReadSuccess') {
+    console.log('QR code generated!');
+  } else if (state === 'qrReadFail') {
+    console.log('Failed to read QR code. Please try again.');
+  }
+});
+
+// Log QR code to the terminal
+venom.onQRCode((qrCode) => {
+  qrcode.generate(qrCode, { small: true }); // Display QR code in the terminal
+  console.log('Scan the QR code above to log in.');
+});
