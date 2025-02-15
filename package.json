@@ -1,17 +1,12 @@
 {
-  "name": "what-bot",
+  "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "A WhatsApp bot for SMM Panel",
+  "description": "A simple WhatsApp bot using Baileys with Pairing Code authentication",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "qrcode": "^1.5.1",
-    "whatsapp-web.js": "^1.19.4"
-  },
-  "engines": {
-    "node": ">=16"
+    "@whiskeysockets/baileys": "^6.0.0"
   }
 }
