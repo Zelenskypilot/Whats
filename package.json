@@ -1,12 +1,18 @@
 {
   "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "A simple WhatsApp bot using Baileys with Pairing Code authentication",
+  "description": "A simple WhatsApp bot using Baileys that generates a pairing code and responds to messages.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "latest"
-  }
+    "@whiskeysockets/baileys": "6.7.12"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "author": "Your Name",
+  "license": "MIT"
 }
