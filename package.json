@@ -2,6 +2,7 @@
   "name": "whatsapp-bot",
   "version": "1.0.0",
   "description": "WhatsApp bot using Baileys on Render",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
