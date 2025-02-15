@@ -1,16 +1,15 @@
-import makeWASocket from '@whiskeysockets/baileys';
+import { makeWASocket } from '@whiskeysockets/baileys';
 
-// Function to start the bot
 async function startBot() {
     const sock = makeWASocket({
-        printQRInTerminal: false // Disable QR
+        printQRInTerminal: false // Disable QR code
     });
 
-    // Check if the bot is not already registered
+    // Generate pairing code
     if (!sock.authState.creds.registered) {
         const number = '255625101994'; // Your phone number
         const code = await sock.requestPairingCode(number);
-        console.log('Your WhatsApp Pairing Code:', code); // This will be visible in Render logs
+        console.log('Your WhatsApp Pairing Code:', code); // Display in Render logs
     }
 
     // Listen for incoming messages
