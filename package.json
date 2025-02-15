@@ -1,12 +1,13 @@
 {
   "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "A simple WhatsApp bot using Venom",
+  "description": "A simple WhatsApp bot using Venom and qrcode-terminal",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "venom-bot": "^4.3.7"
+    "venom-bot": "^4.3.7",
+    "qrcode-terminal": "^0.12.0"
   }
 }
