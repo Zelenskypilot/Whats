@@ -1,22 +1,19 @@
 {
   "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "WhatsApp bot using Baileys on Render",
-  "type": "module",
+  "description": "A simple WhatsApp bot using Baileys that generates a QR code and responds to messages.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "keepalive": "node index.js & sleep infinity"
+    "start": "node index.js"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "6.7.12",
-    "fs-extra": "^11.1.1",
-    "http": "^0.0.1-security"
+    "qrcode": "^1.5.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=16"
   },
-  "keywords": ["whatsapp", "bot", "baileys", "render"],
-  "author": "Jaxx",
+  "author": "Jexx",
   "license": "MIT"
 }
