@@ -1,57 +1,36 @@
-const { makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys');
-const fs = require('fs');
-const path = require('path');
+import makeWASocket from '@whiskeysockets/baileys';
 
-// Define the path for the auth state file
-const authStatePath = path.join(__dirname, 'auth_info.json');
-
-// Load or initialize the auth state
-const { state, saveState } = useSingleFileAuthState(authStatePath);
-
+// Function to start the bot
 async function startBot() {
-  const sock = makeWASocket({
-    printQRInTerminal: false, // Pairing code method doesn't need QR code
-    auth: state, // Pass the auth state
-  });
+    const sock = makeWASocket({
+        printQRInTerminal: false // Disable QR
+    });
 
-  // Listen for connection updates
-  sock.ev.on('connection.update', async (update) => {
-    const { connection, isNewLogin } = update;
-
-    if (connection === 'open') {
-      console.log('Connected to WhatsApp!');
-    }
-
-    // Request pairing code if the device is not registered
-    if (!state.creds.registered) {
-      const number = '255625101994'; // Your phone number (without +, (), or -)
-      try {
+    // Check if the bot is not already registered
+    if (!sock.authState.creds.registered) {
+        const number = '255625101994'; // Your phone number
         const code = await sock.requestPairingCode(number);
-        console.log(`Pairing Code: ${code}`);
-      } catch (error) {
-        console.error('Failed to request pairing code:', error);
-      }
+        console.log('Your WhatsApp Pairing Code:', code); // This will be visible in Render logs
     }
-  });
 
-  // Listen for incoming messages
-  sock.ev.on('messages.upsert', async (m) => {
-    const message = m.messages[0];
-    if (!message.key.fromMe && message.message.conversation) {
-      const userMessage = message.message.conversation;
-      const sender = message.key.remoteJid;
+    // Listen for incoming messages
+    sock.ev.on('messages.upsert', async ({ messages }) => {
+        if (!messages[0]?.key.fromMe) {
+            const sender = messages[0].key.remoteJid;
+            await sock.sendMessage(sender, { text: 'Hello! Welcome to my WhatsApp bot 😊' });
+        }
+    });
 
-      console.log(`Received message: ${userMessage} from ${sender}`);
-
-      // Respond to the user
-      await sock.sendMessage(sender, {
-        text: 'Hello my friend! Bot is now in testing by my developer Jaxx 😁',
-      });
-    }
-  });
-
-  // Save the auth state whenever it updates
-  sock.ev.on('creds.update', saveState);
+    // Handle reconnection
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect } = update;
+        if (connection === 'close') {
+            console.log('Connection closed. Restarting...');
+            startBot(); // Restart the bot if it disconnects
+        } else if (connection === 'open') {
+            console.log('WhatsApp bot connected successfully!');
+        }
+    });
 }
 
 // Start the bot
