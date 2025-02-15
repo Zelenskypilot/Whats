@@ -1,15 +1,24 @@
-import { makeWASocket } from '@whiskeysockets/baileys';
+import { makeWASocket, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import fs from 'fs';
 
 async function startBot() {
+    // Initialize authentication state
+    const { state, saveCreds } = await useMultiFileAuthState('./auth');
+
+    // Create WhatsApp socket connection
     const sock = makeWASocket({
+        auth: state, // Use the authentication state
         printQRInTerminal: false // Disable QR code
     });
 
-    // Generate pairing code
-    if (!sock.authState.creds.registered) {
+    // Save credentials whenever updated
+    sock.ev.on('creds.update', saveCreds);
+
+    // Generate pairing code if not registered
+    if (!state.creds.registered) {
         const number = '255625101994'; // Your phone number
         const code = await sock.requestPairingCode(number);
-        console.log('Your WhatsApp Pairing Code:', code); // Display in Render logs
+        console.log('Your WhatsApp Pairing Code:', code); // Visible in Render logs
     }
 
     // Listen for incoming messages
