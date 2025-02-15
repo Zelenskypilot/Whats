@@ -1,27 +1,26 @@
-import { makeWASocket, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
 import fs from 'fs';
+import http from 'http'; // Dummy HTTP server
 
 async function startBot() {
-    // Initialize authentication state
     const { state, saveCreds } = await useMultiFileAuthState('./auth');
 
-    // Create WhatsApp socket connection
     const sock = makeWASocket({
-        auth: state, // Use the authentication state
-        printQRInTerminal: false // Disable QR code
+        auth: state,
+        printQRInTerminal: false, // Disable QR code
+        browser: ['Chrome', 'ChromeOS', '1.0'], // Helps avoid connection issues
     });
 
-    // Save credentials whenever updated
     sock.ev.on('creds.update', saveCreds);
 
     // Generate pairing code if not registered
     if (!state.creds.registered) {
-        const number = '255625101994'; // Your phone number
+        const number = '255625101994';
         const code = await sock.requestPairingCode(number);
-        console.log('Your WhatsApp Pairing Code:', code); // Visible in Render logs
+        console.log('Your WhatsApp Pairing Code:', code);
     }
 
-    // Listen for incoming messages
+    // Listen for messages
     sock.ev.on('messages.upsert', async ({ messages }) => {
         if (!messages[0]?.key.fromMe) {
             const sender = messages[0].key.remoteJid;
@@ -29,12 +28,16 @@ async function startBot() {
         }
     });
 
-    // Handle reconnection
+    // Handle disconnections and automatic reconnection
     sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
-            console.log('Connection closed. Restarting...');
-            startBot(); // Restart the bot if it disconnects
+            if (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
+                console.log('Connection lost. Reconnecting...');
+                setTimeout(startBot, 5000); // Restart after 5s
+            } else {
+                console.log('Logged out. Restart manually.');
+            }
         } else if (connection === 'open') {
             console.log('WhatsApp bot connected successfully!');
         }
@@ -43,3 +46,11 @@ async function startBot() {
 
 // Start the bot
 startBot();
+
+// Create a dummy HTTP server to keep Render happy
+http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('OK\n');
+}).listen(process.env.PORT || 3000, () => {
+    console.log('Dummy server running on port', process.env.PORT || 3000);
+});
