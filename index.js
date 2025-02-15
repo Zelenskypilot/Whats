@@ -18,9 +18,15 @@ async function startBot() {
     // Log the QR code to Railway logs and generate a QR code using `qrcode` library
     sock.ev.on('qr', (qr) => {
         console.log('Your WhatsApp QR Code (scannable):');
+        
+        // Log the QR code directly to the Railway logs as a string
         QRCode.toString(qr, { type: 'terminal' }, (err, url) => {
-            if (err) throw err;
-            console.log(url); // Prints QR code to console in a scannable format
+            if (err) {
+                console.error('Error generating QR code:', err);
+                return;
+            }
+            // This will print the QR code to the logs in a scannable format
+            console.log(url);
         });
     });
 
